@@ -65,15 +65,15 @@ base64-encode the keystore
 
     base64 -i keystore.p12
 
-Copy/paste the output to `KEYSTORE` [environment variable](blob/master/src/main/resources/application.yml).
+Copy/paste the output to `KEYSTORE` [environment variable](src/main/resources/application.yml).
 
 Use [ASN.1 Decoder](http://lapo.it/asn1js/) to inspect the keystore.
 
 
 ## Using Keystore
 
-[Here](blob/master/src/main/java/com/ndpar/demo/crypto/KeyStoreConfig.java) is how you read the keystore,
-and [here](blob/master/src/test/java/com/ndpar/demo/crypto/KeyStoreConfigTests.java) is how you inject the crypto artifacts.
+[Here](src/main/java/com/ndpar/demo/crypto/KeyStoreConfig.java) is how you read the keystore,
+and [here](src/test/java/com/ndpar/demo/crypto/KeyStoreConfigTests.java) is how you inject the crypto artifacts.
 
 
 ## Links
