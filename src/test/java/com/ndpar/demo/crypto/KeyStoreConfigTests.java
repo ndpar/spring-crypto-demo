@@ -2,10 +2,10 @@ package com.ndpar.demo.crypto;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.Resource;
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -18,16 +18,16 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest
 public class KeyStoreConfigTests {
 
-    @Autowired
+    @Resource
     private Map<String, PrivateKey> privateKeys;
 
-    @Autowired
+    @Resource
     private Map<String, PublicKey> publicKeys;
 
-    @Autowired
+    @Resource
     private Map<String, Certificate> certificates;
 
-    @Autowired
+    @Resource
     private Map<String, SecretKey> secretKeys;
 
     @Test
