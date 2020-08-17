@@ -21,7 +21,7 @@ class CryptoConfigTest {
 
     @Test
     fun `read root key`() {
-        assertEquals("EC", rootKey.algorithm)
+        assertEquals("ECDSA", rootKey.algorithm)
     }
 
     @Test

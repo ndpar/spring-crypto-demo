@@ -11,6 +11,7 @@ import org.bouncycastle.cert.X509CertificateHolder
 import org.bouncycastle.cert.X509v3CertificateBuilder
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils
+import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.openssl.PEMKeyPair
 import org.bouncycastle.openssl.PEMParser
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
@@ -28,15 +29,15 @@ import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import java.security.spec.ECGenParameterSpec
 import java.util.*
 
+const val BC_PROVIDER = "BC"
 const val KEY_ALGORITHM = "EC"
 const val SIGNATURE_ALGORITHM = "SHA256withECDSA"
 
 fun generateKeyPair(curveName: String = "secp256r1"): KeyPair =
-    with(KeyPairGenerator.getInstance(KEY_ALGORITHM)) {
-        initialize(ECGenParameterSpec(curveName))
+    with(KeyPairGenerator.getInstance(KEY_ALGORITHM, BC_PROVIDER)) {
+        initialize(ECNamedCurveTable.getParameterSpec(curveName))
         generateKeyPair()
     }
 
@@ -49,7 +50,7 @@ fun signKey(
     extensions: List<Extension> = caExtensions(publicKey, caCert)
 ): X509Certificate {
 
-    val signer = JcaContentSignerBuilder(SIGNATURE_ALGORITHM).build(caKey)
+    val signer = JcaContentSignerBuilder(SIGNATURE_ALGORITHM).setProvider(BC_PROVIDER).build(caKey)
     val csrBuilder = JcaPKCS10CertificationRequestBuilder(X500Name(dn), publicKey)
     val csr: PKCS10CertificationRequest = csrBuilder.build(signer)
 
@@ -68,7 +69,7 @@ fun signKey(
     extensions.forEach { certBuilder.addExtension(it) }
 
     val certHolder = certBuilder.build(signer)
-    return JcaX509CertificateConverter().getCertificate(certHolder)
+    return JcaX509CertificateConverter().setProvider(BC_PROVIDER).getCertificate(certHolder)
 }
 
 fun dhExtensions(publicKey: PublicKey, rootCert: X509Certificate): List<Extension> {
