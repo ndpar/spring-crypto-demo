@@ -7,12 +7,20 @@ import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x509.BasicConstraints
 import org.bouncycastle.asn1.x509.Extension
 import org.bouncycastle.asn1.x509.KeyUsage
+import org.bouncycastle.cert.X509CertificateHolder
 import org.bouncycastle.cert.X509v3CertificateBuilder
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils
+import org.bouncycastle.openssl.PEMKeyPair
+import org.bouncycastle.openssl.PEMParser
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
+import java.io.Reader
+import java.io.StringWriter
+import java.io.Writer
 import java.math.BigInteger
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -86,3 +94,22 @@ fun caExtensions(publicKey: PublicKey, rootCert: X509Certificate): List<Extensio
 
 private fun ext(oid: ASN1ObjectIdentifier, isCritical: Boolean, value: ASN1Encodable): Extension =
     Extension(oid, isCritical, DEROctetString(value))
+
+fun Reader.readPrivateKey(): PrivateKey {
+    val parser = PEMParser(this)
+    val pem = parser.readObject() as PEMKeyPair
+    return JcaPEMKeyConverter().getKeyPair(pem).private
+}
+
+fun Reader.readCert(): X509Certificate {
+    val parser = PEMParser(this)
+    val pem = parser.readObject() as X509CertificateHolder
+    return JcaX509CertificateConverter().getCertificate(pem)
+}
+
+fun Any.toPem(writer: Writer = StringWriter()): Writer = writer.also { w ->
+    JcaPEMWriter(w).use {
+        it.writeObject(this)
+        it.flush()
+    }
+}
