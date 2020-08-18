@@ -88,8 +88,7 @@ fun caExtensions(publicKey: PublicKey, rootCert: X509Certificate): List<Extensio
         ext(Extension.subjectKeyIdentifier, false, issuedCertExtUtils.createSubjectKeyIdentifier(publicKey)),
         ext(Extension.authorityKeyIdentifier, false, issuedCertExtUtils.createAuthorityKeyIdentifier(rootCert)),
         ext(Extension.basicConstraints, true, BasicConstraints(true)),
-        // TODO ext(Extension.keyUsage, true, KeyUsage(KeyUsage.cRLSign)),
-        ext(Extension.keyUsage, true, KeyUsage(KeyUsage.keyCertSign))
+        ext(Extension.keyUsage, true, KeyUsage(KeyUsage.keyCertSign or KeyUsage.cRLSign))
     )
 }
 
