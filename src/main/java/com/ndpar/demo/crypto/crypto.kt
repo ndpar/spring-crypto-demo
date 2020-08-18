@@ -59,7 +59,7 @@ fun signKey(
     val endDate = startDate + days.days
 
     val certBuilder = X509v3CertificateBuilder(
-        X500Name(caCert.issuerDN.name),
+        X500Name(caCert.subjectDN.name),
         serialNumber,
         startDate,
         endDate,
@@ -72,21 +72,21 @@ fun signKey(
     return JcaX509CertificateConverter().setProvider(BC_PROVIDER).getCertificate(certHolder)
 }
 
-fun dhExtensions(publicKey: PublicKey, rootCert: X509Certificate): List<Extension> {
-    val issuedCertExtUtils = JcaX509ExtensionUtils()
+fun dhExtensions(publicKey: PublicKey, caCert: X509Certificate): List<Extension> {
+    val extUtils = JcaX509ExtensionUtils()
     return listOf(
+        ext(Extension.subjectKeyIdentifier, false, extUtils.createSubjectKeyIdentifier(publicKey)),
+        ext(Extension.authorityKeyIdentifier, false, extUtils.createAuthorityKeyIdentifier(caCert)),
         ext(Extension.basicConstraints, true, BasicConstraints(false)),
-        ext(Extension.subjectKeyIdentifier, false, issuedCertExtUtils.createSubjectKeyIdentifier(publicKey)),
-        ext(Extension.authorityKeyIdentifier, false, issuedCertExtUtils.createAuthorityKeyIdentifier(rootCert)),
         ext(Extension.keyUsage, true, KeyUsage(KeyUsage.keyAgreement))
     )
 }
 
-fun caExtensions(publicKey: PublicKey, rootCert: X509Certificate): List<Extension> {
-    val issuedCertExtUtils = JcaX509ExtensionUtils()
+fun caExtensions(publicKey: PublicKey, caCert: X509Certificate): List<Extension> {
+    val extUtils = JcaX509ExtensionUtils()
     return listOf(
-        ext(Extension.subjectKeyIdentifier, false, issuedCertExtUtils.createSubjectKeyIdentifier(publicKey)),
-        ext(Extension.authorityKeyIdentifier, false, issuedCertExtUtils.createAuthorityKeyIdentifier(rootCert)),
+        ext(Extension.subjectKeyIdentifier, false, extUtils.createSubjectKeyIdentifier(publicKey)),
+        ext(Extension.authorityKeyIdentifier, false, extUtils.createAuthorityKeyIdentifier(caCert)),
         ext(Extension.basicConstraints, true, BasicConstraints(true)),
         ext(Extension.keyUsage, true, KeyUsage(KeyUsage.keyCertSign or KeyUsage.cRLSign))
     )

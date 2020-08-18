@@ -31,31 +31,40 @@ class CryptoTest {
     private lateinit var rootCert: X509Certificate
 
     @Test
-    fun `generate key pair and sign cert`() {
+    fun `generate key pairs and chain of signed certs`() {
         val dn = "CN=Intermediate CA"
 
-        val keyPair = generateKeyPair()
-        val cert = signKey(keyPair.public, rootKey, rootCert, dn)
+        val caKeyPair = generateKeyPair()
+        val caCert = signKey(caKeyPair.public, rootKey, rootCert, dn)
 
-        cert.verify(rootCert.publicKey)
-        cert.checkValidity(Date() + 3600.days)
+        caCert.verify(rootCert.publicKey)
+        caCert.checkValidity(Date() + 3600.days)
 
-        assertTrue(157 < cert.serialNumber.bitLength())
-        assertEquals("SHA256WITHECDSA", cert.sigAlgName)
-        assertTrue(cert.issuerDN.name.contains("Root CA"))
-        assertEquals(dn, cert.subjectDN.name)
-        assertEquals(KEY_ALGORITHM, cert.publicKey.algorithm)
-        assertEquals(2, cert.nonCriticalExtensionOIDs.size)
-        assertEquals(2, cert.criticalExtensionOIDs.size)
-        assertTrue(cert.criticalExtensionOIDs.contains("2.5.29.15")) // key usage
+        assertTrue(157 < caCert.serialNumber.bitLength())
+        assertEquals("SHA256WITHECDSA", caCert.sigAlgName)
+        assertTrue(caCert.issuerDN.name.contains("Root CA"))
+        assertEquals(dn, caCert.subjectDN.name)
+        assertEquals(KEY_ALGORITHM, caCert.publicKey.algorithm)
+        assertEquals(2, caCert.nonCriticalExtensionOIDs.size)
+        assertEquals(2, caCert.criticalExtensionOIDs.size)
+        assertTrue(caCert.criticalExtensionOIDs.contains("2.5.29.15")) // key usage
 
         // check PEM serialization
-        readAndWritePrivateKeyPem(keyPair.private.toPem().toString())
-        readAndWriteCertPem(cert.toPem().toString())
+        readAndWritePrivateKeyPem(caKeyPair.private.toPem().toString())
+        readAndWriteCertPem(caCert.toPem().toString())
 
-        // print PEM files just in case
-        keyPair.private.toPem(FileWriter("target/test-key.pem"))
-        cert.toPem(FileWriter("target/test-cert.pem"))
+        // print CA PEM files just in case
+        caKeyPair.private.toPem(FileWriter("target/ca-key.pem"))
+        caCert.toPem(FileWriter("target/ca-cert.pem"))
+
+        val dhKeyPair = generateKeyPair("secp256k1")
+        val dhCert = signKey(
+            dhKeyPair.public, caKeyPair.private, caCert, "CN=*.ndpar.org",
+            extensions = dhExtensions(dhKeyPair.public, caCert)
+        )
+        // print ECDH PEM files just in case
+        dhKeyPair.private.toPem(FileWriter("target/ecdh-key.pem"))
+        dhCert.toPem(FileWriter("target/ecdh-cert.pem"))
     }
 
     @Test
