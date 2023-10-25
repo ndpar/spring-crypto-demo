@@ -1,5 +1,8 @@
 package com.ndpar.demo.crypto
 
+import org.bouncycastle.asn1.ASN1BitString
+import org.bouncycastle.asn1.ASN1InputStream
+import org.bouncycastle.asn1.ASN1Sequence
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -7,9 +10,11 @@ import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit4.SpringRunner
+import java.io.ByteArrayInputStream
 import java.io.FileWriter
 import java.io.StringReader
 import java.security.PrivateKey
+import java.security.PublicKey
 import java.security.cert.X509Certificate
 import java.util.*
 import javax.annotation.Resource
@@ -42,8 +47,8 @@ class CryptoTest {
 
         assertTrue(157 < caCert.serialNumber.bitLength())
         assertEquals("SHA256WITHECDSA", caCert.sigAlgName)
-        assertTrue(caCert.issuerDN.name.contains("Root CA"))
-        assertEquals(dn, caCert.subjectDN.name)
+        assertTrue(caCert.issuerX500Principal.name.contains("Root CA"))
+        assertEquals(dn, caCert.subjectX500Principal.name)
         assertEquals(KEY_ALGORITHM, caCert.publicKey.algorithm)
         assertEquals(2, caCert.nonCriticalExtensionOIDs.size)
         assertEquals(2, caCert.criticalExtensionOIDs.size)
@@ -65,6 +70,16 @@ class CryptoTest {
         // print ECDH PEM files just in case
         dhKeyPair.private.toPem(FileWriter("target/ecdh-key.pem"))
         dhCert.toPem(FileWriter("target/ecdh-cert.pem"))
+    }
+
+    fun encodeBase64Url(publicKey: PublicKey): String {
+        val encodedBytes: ByteArray = publicKey.encoded
+        val asn1Stream = ASN1InputStream(ByteArrayInputStream(encodedBytes))
+        val subjectPublicKeyInfo = asn1Stream.readObject() as ASN1Sequence
+        val publicKeyBitString = subjectPublicKeyInfo.getObjectAt(1) as ASN1BitString
+        val rawBytesWithCompression = publicKeyBitString.bytes
+        val bytes = Arrays.copyOfRange(rawBytesWithCompression, 1, rawBytesWithCompression.size)
+        return String(Base64.getUrlEncoder().encode(bytes))
     }
 
     @Test

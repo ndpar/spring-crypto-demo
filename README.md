@@ -82,3 +82,5 @@ and [here](src/test/java/com/ndpar/demo/crypto/KeyStoreConfigTests.java) is how 
 - Commonly used [cryptographic commands](https://blog.ndpar.com/2017/04/24/cryptography-tools/)
 - [Scripts](https://github.com/ndpar/openssl) to automate key/certs generation
 
+# Certificate Chain Demo
+
